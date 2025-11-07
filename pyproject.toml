@@ -1,0 +1,44 @@
+[project]
+name = "classiq"
+version = "0.1.0"
+description = "System for executing Quantum Circuits"
+requires-python = ">=3.11"
+dependencies = [
+    "dramatiq[redis, watch]==1.18.0",
+    "fastapi[standard]==0.121.0",
+    "pydantic==2.12.4",
+    "qiskit==2.2.3",
+    "qiskit-aer==0.17.2",
+    "redis==6.4.0", # Maximum compatible with dramatiq
+    "uvicorn[standard]==0.38.0",
+    "qiskit-qasm3-import==0.6.0",
+    "pytest==8.4.2",
+    "pytest-asyncio==1.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "rich==14.2.0",
+    "pytest==8.4.2",
+    "pytest-asyncio==1.2.0",
+    "httpx==0.28.1",
+    "ruff==0.14.4",
+    "python-dotenv==1.2.1",
+]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "UP"]
+ignore = [
+  # Allow short docstrings/comments in tests
+  "D",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+profile = "black"
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: marks tests as integration (deselect with -m 'not integration')",
+]

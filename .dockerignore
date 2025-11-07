@@ -1,0 +1,44 @@
+# Ignore VCS
+.git
+.gitignore
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+
+# Test caches / artifacts
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage*
+
+# Local env files
+.env
+.env.*
+
+# Editor/IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Docs not needed for runtime (keep if needed)
+docs/
+
+# Build outputs
+build/
+dist/
+
+# Logs
+*.log
+
+# Integration test assets (kept if needed)
+

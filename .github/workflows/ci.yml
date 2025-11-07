@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+
+jobs:
+  unit-and-integration:
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: production
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_RESULT_TTL: 3600
+      BROKER_TIME_LIMIT_MS: 120000
+      BROKER_MAX_RETRIES: 3
+      QC_TASK_TIME_LIMIT_MS: 300000
+      QC_TASK_MAX_RETRIES: 3
+      QC_TASK_DEFAULT_SHOTS: 128
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Sync deps (dev)
+        run: uv sync --extra dev
+
+      - name: Run unit tests (exclude integration)
+        run: uv run pytest -q -m "not integration"
+
+      - name: Build and start docker-compose stack
+        run: |
+          docker compose up -d --build
+
+      - name: Wait for API
+        run: |
+          for i in {1..60}; do
+            if curl -sf "http://localhost:${API_PORT}/docs" >/dev/null; then
+              echo "API is up"; exit 0; fi; sleep 2; done
+          echo "API did not become ready"; docker compose logs api worker; exit 1
+
+      - name: Run integration tests
+        run: uv run pytest -q -m integration
+
+      - name: Show compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color | tail -n 500
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+

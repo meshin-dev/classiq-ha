@@ -1,0 +1,41 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["${REDIS_PORT:-6379}:6379"]
+
+  api:
+    build: .
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_RESULT_TTL=${REDIS_RESULT_TTL}
+      - BROKER_TIME_LIMIT_MS=${BROKER_TIME_LIMIT_MS}
+      - BROKER_MAX_RETRIES=${BROKER_MAX_RETRIES}
+      - QC_TASK_TIME_LIMIT_MS=${QC_TASK_TIME_LIMIT_MS}
+      - QC_TASK_MAX_RETRIES=${QC_TASK_MAX_RETRIES}
+      - QC_TASK_DEFAULT_SHOTS=${QC_TASK_DEFAULT_SHOTS}
+      - API_HOST=${API_HOST}
+      - API_PORT=${API_PORT}
+    depends_on: [redis]
+    command: ["sh", "-c", "uv run uvicorn main:app --host ${API_HOST:-0.0.0.0} --port ${API_PORT:-8000}"]
+    ports: ["${API_PORT:-8000}:${API_PORT:-8000}"]
+
+  worker:
+    build: .
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_RESULT_TTL=${REDIS_RESULT_TTL}
+      - BROKER_TIME_LIMIT_MS=${BROKER_TIME_LIMIT_MS}
+      - BROKER_MAX_RETRIES=${BROKER_MAX_RETRIES}
+      - QC_TASK_TIME_LIMIT_MS=${QC_TASK_TIME_LIMIT_MS}
+      - QC_TASK_MAX_RETRIES=${QC_TASK_MAX_RETRIES}
+      - QC_TASK_DEFAULT_SHOTS=${QC_TASK_DEFAULT_SHOTS}
+    depends_on: [redis, api] # let api build once, then reuse docker layers
+    command: ["sh", "-c", "uv run dramatiq app.tasks -p ${WORKER_CONCURRENCY:-10}"]
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
