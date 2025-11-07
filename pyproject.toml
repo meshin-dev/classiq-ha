@@ -42,3 +42,11 @@ profile = "black"
 markers = [
   "integration: marks tests as integration (deselect with -m 'not integration')",
 ]
+
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]
+include-package-data = true

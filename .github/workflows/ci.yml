@@ -38,6 +38,9 @@ jobs:
       - name: Sync deps (dev)
         run: uv sync --extra dev
 
+      - name: Install project (editable)
+        run: uv pip install -e .
+
       - name: Run unit tests (exclude integration)
         run: uv run pytest -q -m "not integration"
 
@@ -62,4 +65,3 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down -v
-
