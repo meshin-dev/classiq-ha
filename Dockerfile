@@ -15,7 +15,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev
+RUN uv sync --no-dev --no-install-project
 
 COPY . .
 CMD ["sh", "-c", "uv run uvicorn main:app --host ${API_HOST:-0.0.0.0} --port ${API_PORT:-8000}"]
